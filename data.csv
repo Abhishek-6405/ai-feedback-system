@@ -1,0 +1,23 @@
+timestamp,user_rating,user_review,ai_response,ai_summary,ai_recommended_action
+2025-12-06 12:34:22,5,The product quality is excellent and delivery was fast.,Thank you for your feedback!,AI failed to summarize.,Manual review required.
+2025-12-06 12:37:00,2,"The product quality is excellent and delivery was fast.
+",Thank you for your feedback!,Summary unavailable.,Manual review required.
+2025-12-06 12:37:03,2,"The product quality is excellent and delivery was fast.
+",Thank you for your feedback!,Summary unavailable.,Manual review required.
+2025-12-06 12:45:24,3,I like your food,Thank you for your feedback!,Summary unavailable.,Manual review required.
+2025-12-06 13:10:09,3,Hiii,Thank you for your feedback!,Summary unavailable.,Manual review required.
+2025-12-06 13:17:07,3,It's good,Thank you for your feedback!,Summary unavailable.,Manual review required.
+2025-12-06 13:19:51,2,Byeee,Thank you for your feedback!,Summary unavailable.,Manual review required.
+2025-12-06 13:25:43,3,I was good,Thank you for your feedback!,Summary unavailable.,Manual review required.
+2025-12-06 13:29:04,1,Not bad,Thank you for your feedback!,Summary unavailable.,Manual review required.
+2025-12-06 13:29:38,3,Not bad,Thank you for your feedback!,Summary unavailable.,Manual review required.
+2025-12-06 13:35:15,3,Hello,Thank you for your feedback!,Summary unavailable.,Manual review required.
+2025-12-06 13:45:23,3,Hello,Thank you for your feedback!,Summary unavailable.,Manual review required.
+2025-12-06 13:46:11,3,HEllo,Thank you for your feedback!,Summary unavailable.,Manual review required.
+2025-12-06 13:51:34,4,"The food was amazing and delivery was super fast.
+",Thank you for your feedback!,Summary unavailable.,Manual review required.
+2025-12-06 13:54:20,5,The food was amazing and delivery was super fast.,Thank you for your feedback!,Summary unavailable.,Manual review required.
+2025-12-06 13:56:18,1,HEllo,We're sorry to see your 1-star rating. Could you please share more details about your experience so we can understand what went wrong and how we can improve?,"User left a 1-star rating with a single, uninformative word as a review.",Attempt to contact the user to gather more specific feedback regarding their low rating.
+2025-12-06 13:57:11,5,It was great,Thanks for the great feedback!,"Customer provided positive, general feedback.",No specific action required beyond acknowledgement.
+2025-12-06 14:02:25,3,It was nice,Thank you for your review!,"Neutral feedback, indicating a satisfactory but not exceptional experience.",Encourage user for more specific feedback.
+2025-12-06 15:49:13,5,I really love this place,That's wonderful to hear! We're so glad you love it here.,User gave a 5-star rating and expressed strong positive sentiment for the place.,Share with staff to boost morale.
