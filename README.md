@@ -1,181 +1,122 @@
-project:
-  title: "Task 2 – Two-Dashboard AI Feedback System (Web-Based)"
-  description: >
-    This project is a complete AI-powered user feedback collection and analysis system
-    built using Streamlit and Google Gemini AI as part of the AI Intern Take-Home Assessment.
-    It allows users to submit feedback and ratings, AI to generate a response, summary,
-    and admin action, and the admin to view, analyze, and download all feedback.
-    All features are deployed in a single cloud application with real-time synchronization.
+# ✅ Task 2 – Two-Dashboard AI Feedback System (Web-Based)
 
-deployment:
-  live_app:
-    description: "User & Admin Combined Deployment (Final Working App)"
-    link: "PASTE YOUR STREAMLIT DEPLOYMENT LINK HERE"
-    note: "Single deployment contains both User Feedback page and Admin Dashboard via sidebar navigation."
+This project is a complete **AI-powered user feedback collection and analysis system** built using **Streamlit and Google Gemini AI** as part of the **AI Intern Take-Home Assessment**.
 
-problem_statement: >
-  Design and deploy an AI-powered feedback system where users can submit ratings and textual
-  feedback, AI automatically generates a polite reply, internal summary, and recommended
-  admin action, and the admin can view analytics and export feedback data.
+It allows:
+- Users to submit feedback and ratings
+- AI to generate a response, summary, and admin action
+- Admin to view, analyze, and download all feedback
 
-deployment_issue_and_resolution:
-  initial_approach:
-    description: "Two Separate Streamlit Applications"
-    apps:
-      - app_user.py: "User feedback submission app"
-      - app_admin.py: "Admin dashboard app"
-    local_status: "Worked perfectly in local execution"
+All features are deployed in a **single cloud application** with **real-time synchronization**.
 
-  issue_after_cloud_deployment:
-    platform: "Streamlit Cloud"
-    reasons:
-      - "Each deployed app runs in a separate isolated container"
-      - "Each container has its own independent file system"
-    result:
-      - "User app wrote to its own data.csv"
-      - "Admin app attempted to read a different data.csv"
-      - "Admin could not see user submissions"
-    conclusion: "Worked locally but failed on cloud due to container isolation"
+---
 
-  final_solution:
-    approach:
-      - "Merged User & Admin into a single Streamlit application"
-      - "Implemented sidebar navigation"
-      - "Used one shared data.csv file"
-    outcome:
-      - "Real-time data synchronization"
-      - "Fully cloud-compatible"
-      - "Stable production deployment"
-    learned: "Demonstrates real-world cloud debugging and deployment architecture handling"
+## 🚀 Live Deployment Links
 
-features:
-  user_feedback_page:
-    - "1–5 star rating system"
-    - "Text-based review submission"
-    - "AI-generated polite user response"
-    - "AI-generated internal summary"
-    - "AI-generated admin recommended action"
-    - "Automatic CSV storage"
-    - "Input validation and AI fallback handling"
+✅ **User & Admin Combined Deployment (Final Working App):**  
+👉 (https://task2-ai-feedback-system-keviekvszoauecvlncxax4.streamlit.app/) 
 
-  admin_dashboard:
-    - "Live feedback table"
-    - "Rating distribution bar chart"
-    - "Download complete feedback CSV"
-    - "Auto-refresh after every submission"
+_(Single deployment contains both User Feedback page and Admin Dashboard via sidebar navigation.)_
 
-  ai_intelligence:
-    provider: "Google Gemini API"
-    capabilities:
-      - "Auto-detects supported AI model"
-      - "Structured output parsing"
-      - "Fail-safe fallback handling if AI fails"
-    output_format:
-      - "AI_RESPONSE"
-      - "SUMMARY"
-      - "ACTION"
+---
 
-technology_stack:
-  - "Python"
-  - "Streamlit"
-  - "Google Gemini AI"
-  - "Pandas"
-  - "CSV File System"
-  - "GitHub"
-  - "Streamlit Cloud"
+## 📌 Problem Statement
 
-project_structure:
-  root: "task2-ai-feedback-system/"
-  files:
-    - "app.py: Single combined User + Admin application"
-    - "data.csv: Feedback storage"
-    - "requirements.txt: Dependencies"
-    - "README.md: Documentation"
-    - ".gitignore"
+Design and deploy an **AI-powered feedback system** where:
+- Users can submit ratings and textual feedback
+- AI automatically generates:
+  - A polite user reply
+  - An internal feedback summary
+  - A recommended admin action
+- Admin can view analytics and export feedback data
 
-environment_setup:
-  steps:
-    - step: "Clone Repository"
-      command:
-        - "git clone https://github.com/Abhishek-6405/task2-ai-feedback-system.git"
-        - "cd task2-ai-feedback-system"
+---
 
-    - step: "Create Virtual Environment"
-      command:
-        - "python -m venv task2env"
+## 🧠 Deployment Issue Faced & Final Technical Resolution
 
-    - step: "Activate Virtual Environment"
-      command:
-        - "task2env\\Scripts\\activate"
+### ❌ Initial Deployment Approach (Two Separate Apps)
 
-    - step: "Install Dependencies"
-      command:
-        - "pip install -r requirements.txt"
+Initially, the project was deployed as two separate Streamlit applications:
 
-    - step: "Set Gemini API Key (Local)"
-      command:
-        - "setx GEMINI_API_KEY \"YOUR_API_KEY\""
-      note: "Restart terminal after setting the key"
+- `app_user.py` → User feedback submission app  
+- `app_admin.py` → Admin dashboard app  
 
-    - step: "Set API Key on Streamlit Cloud"
-      instructions:
-        - "Go to App Settings → Secrets"
-        - "Add GEMINI_API_KEY = \"YOUR_API_KEY\""
+Both applications worked **perfectly in local execution**.
 
-run_locally:
-  command: "streamlit run app.py"
+---
 
-ai_usage:
-  purposes:
-    - "User response generation"
-    - "Review summarization"
-    - "Recommended admin actions"
-  notes:
-    - "Only prompt engineering is used"
-    - "No model fine-tuning required"
+### ⚠️ Issue After Deployment
 
-sample_stored_output:
-  columns:
-    - "Timestamp"
-    - "Rating"
-    - "Review"
-    - "AI Response"
-    - "Summary"
-    - "Action"
-  example:
-    Timestamp: "2025-12-06"
-    Rating: 4
-    Review: "Service was good"
-    AI_Response: "Thank you for your feedback"
-    Summary: "Positive experience"
-    Action: "No action required"
+On **Streamlit Cloud**:
 
-error_handling_and_reliability:
-  - "Prevents empty review submission"
-  - "Gemini API exception handling"
-  - "Default fallback responses"
-  - "Auto CSV creation"
-  - "Cloud-safe single instance storage"
-  - "Production-safe deployment behavior"
+- Each deployed app runs in a **separate isolated container**
+- Every container has its **own independent file system**
 
-final_project_status:
-  - "Fully Deployed on Streamlit Cloud"
-  - "Gemini AI Integrated Successfully"
-  - "User & Admin Data Synced in Real-Time"
-  - "CSV Download Enabled"
-  - "Cloud Isolation Bug Permanently Fixed"
-  - "Internship Task 2 Successfully Completed"
+As a result:
 
-submission_checklist:
-  - "GitHub Repository"
-  - "Streamlit Deployment Link"
-  - "AI Model Integration"
-  - "User Feedback System"
-  - "Admin Dashboard"
-  - "Cloud Debugging Explanation"
-  - "CSV Export"
+- User app wrote feedback into its own `data.csv`
+- Admin app tried to read a **different `data.csv`**
+- Therefore, **admin could not see user submissions**
 
-author:
-  name: "Abhishek Maurya"
-  role: "AI Intern – Take Home Assessment"
-  github: "https://github.com/Abhishek-6405"
+✅ This worked **locally** but failed on **cloud deployment** due to **container isolation**.
+
+---
+
+### ✅ Final Correct Industry-Standard Solution
+
+To permanently solve the issue:
+
+- Merged **User & Admin** into a **single Streamlit application**
+- Implemented **sidebar navigation**
+- Used **one shared `data.csv` file**
+
+✅ **Final Result:**
+- Real-time data synchronization  
+- Fully cloud-compatible  
+- Stable production deployment  
+
+✅ This fix demonstrates **real-world cloud debugging and deployment architecture handling**.
+
+---
+
+## 🎯 Features
+
+### 👤 User Feedback Page
+- 1–5 star rating system  
+- Text-based review submission  
+- AI-generated:
+  - Polite user response  
+  - Internal summary  
+  - Admin recommended action  
+- Feedback stored automatically in CSV  
+- Input validation and AI fallback handling  
+
+---
+
+### 👨‍💼 Admin Dashboard
+- View all feedback in live table  
+- Rating distribution bar chart  
+- Download complete feedback CSV  
+- Auto-refresh after every submission  
+
+---
+
+### 🤖 AI Intelligence
+- Powered by **Google Gemini API**
+- Auto-detects supported model
+- Structured output parsing:
+  - `AI_RESPONSE`
+  - `SUMMARY`
+  - `ACTION`
+- Fail-safe fallback handling if AI fails
+
+---
+
+## 🛠 Technology Stack
+- Python  
+- Streamlit  
+- Google Gemini AI  
+- Pandas  
+- CSV File System  
+- GitHub  
+- Streamlit Cloud  
