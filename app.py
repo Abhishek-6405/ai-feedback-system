@@ -27,7 +27,7 @@ def generate_ai_response(review, rating):
     if not api_key:
         return "__error__"
 
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={api_key}"
+    url = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent?key={api_key}"
 
     prompt = f"""
 A user gave a {rating}-star rating and wrote this review:
@@ -35,16 +35,22 @@ A user gave a {rating}-star rating and wrote this review:
 "{review}"
 
 Respond EXACTLY in this format:
-AI_RESPONSE:
-SUMMARY:
-ACTION:
+
+AI_RESPONSE: <polite reply>
+SUMMARY: <short summary>
+ACTION: <admin action>
 """
 
     payload = {
-        "contents": [{"parts": [{"text": prompt}]}]
+        "contents": [
+            {
+                "parts": [{"text": prompt}]
+            }
+        ]
     }
 
     headers = {"Content-Type": "application/json"}
+
     response = requests.post(url, headers=headers, json=payload)
 
     if response.status_code != 200:
@@ -52,6 +58,7 @@ ACTION:
 
     data = response.json()
     return data["candidates"][0]["content"]["parts"][0]["text"]
+
 
 # ---------------- UI ----------------
 st.title("📝 User Feedback Portal")
