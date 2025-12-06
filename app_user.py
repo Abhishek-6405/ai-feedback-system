@@ -2,7 +2,8 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 import os
-import google.generativeai as genai
+import requests
+
 
 # ---------------- CONFIG ----------------
 st.set_page_config(page_title="User Feedback Dashboard", layout="centered")
