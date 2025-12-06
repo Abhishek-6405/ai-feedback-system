@@ -1,62 +1,72 @@
 import streamlit as st
 import pandas as pd
-import time
-import os
 
 # ---------------- CONFIG ----------------
-st.set_page_config(page_title="Admin Dashboard", layout="wide")
+st.set_page_config(page_title="Admin Feedback Dashboard", layout="wide")
 DATA_FILE = "data.csv"
 
-st.title("📊 Admin Dashboard – AI Feedback System")
-
-# ---------------- AUTO REFRESH ----------------
-refresh_rate = st.slider("Auto Refresh (seconds)", 5, 60, 10)
-
 # ---------------- LOAD DATA ----------------
-def load_data():
-    if not os.path.exists(DATA_FILE):
-        return pd.DataFrame(columns=[
-            "timestamp",
-            "user_rating",
-            "user_review",
-            "ai_response",
-            "ai_summary",
-            "ai_recommended_action"
-        ])
-    return pd.read_csv(DATA_FILE)
+st.title("📊 Admin Feedback Dashboard")
 
-df = load_data()
+try:
+    df = pd.read_csv(DATA_FILE)
+except:
+    st.error("❌ data.csv not found. Please submit at least one feedback first.")
+    st.stop()
 
-# ---------------- ANALYTICS ----------------
-st.subheader("📈 Quick Analytics")
+# ---------------- FILTER SECTION ----------------
+st.sidebar.header("🔍 Filters")
 
+rating_filter = st.sidebar.selectbox(
+    "Filter by Rating",
+    ["All", 1, 2, 3, 4, 5]
+)
+
+if rating_filter != "All":
+    df = df[df["user_rating"] == int(rating_filter)]
+
+# ---------------- METRICS ----------------
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    st.metric("Total Feedbacks", len(df))
+    st.metric("Total Feedback", len(df))
 
 with col2:
-    if len(df) > 0:
-        st.metric("Average Rating", round(df["user_rating"].mean(), 2))
-    else:
-        st.metric("Average Rating", 0)
+    avg_rating = round(df["user_rating"].mean(), 2) if len(df) > 0 else 0
+    st.metric("Average Rating", avg_rating)
 
 with col3:
-    if len(df) > 0:
-        st.metric("Latest Rating", df.iloc[-1]["user_rating"])
-    else:
-        st.metric("Latest Rating", "N/A")
+    low_ratings = len(df[df["user_rating"] <= 2])
+    st.metric("Low Ratings (≤2)", low_ratings)
 
-st.divider()
+# ---------------- TABLE ----------------
+st.subheader("🗂 All Feedback Records")
+st.dataframe(df, use_container_width=True)
 
-# ---------------- DATA TABLE ----------------
-st.subheader("🗂 All User Submissions")
+# ---------------- DOWNLOAD BUTTON ----------------
+st.subheader("⬇ Download Data")
 
-if len(df) == 0:
-    st.warning("No feedback submitted yet.")
-else:
-    st.dataframe(df, use_container_width=True)
+csv = df.to_csv(index=False).encode("utf-8")
 
-# ---------------- AUTO REFRESH ----------------
-time.sleep(refresh_rate)
-st.rerun()
+st.download_button(
+    label="Download CSV",
+    data=csv,
+    file_name="feedback_data.csv",
+    mime="text/csv"
+)
+
+# ---------------- SIMPLE ANALYTICS ----------------
+st.subheader("📈 Rating Distribution")
+
+rating_counts = df["user_rating"].value_counts().sort_index()
+st.bar_chart(rating_counts)
+
+# ---------------- AI SUMMARY VIEW ----------------
+st.subheader("🤖 AI Insights")
+
+for _, row in df.iterrows():
+    with st.expander(f"Feedback at {row['timestamp']} (Rating: {row['user_rating']})"):
+        st.write(f"**User Review:** {row['user_review']}")
+        st.write(f"**AI Response:** {row['ai_response']}")
+        st.write(f"**AI Summary:** {row['ai_summary']}")
+        st.write(f"**Recommended Action:** {row['ai_recommended_action']}")
