@@ -4,27 +4,9 @@ from datetime import datetime
 import os
 import requests
 
-
 # ---------------- CONFIG ----------------
 st.set_page_config(page_title="User Feedback Dashboard", layout="centered")
 DATA_FILE = "data.csv"
-
-# ---------------- GEMINI SETUP ----------------
-api_key = os.getenv("GEMINI_API_KEY")
-genai.configure(api_key=api_key)
-
-# ✅ AUTO-DETECT A WORKING MODEL
-working_model = None
-for m in genai.list_models():
-    if "generateContent" in m.supported_generation_methods:
-        working_model = m.name
-        break
-
-if not working_model:
-    st.error("❌ No usable Gemini model found for your API key.")
-    st.stop()
-
-model = genai.GenerativeModel(working_model)
 
 # ------------- CREATE DATA FILE IF NOT EXISTS -------------
 if not os.path.exists(DATA_FILE):
@@ -38,8 +20,15 @@ if not os.path.exists(DATA_FILE):
     ])
     df.to_csv(DATA_FILE, index=False)
 
-# ---------------- AI FUNCTION ----------------
+# ---------------- AI FUNCTION (REST API ONLY) ----------------
 def generate_ai_response(review, rating):
+    api_key = os.getenv("GEMINI_API_KEY")
+
+    if not api_key:
+        return "__API_KEY_MISSING__"
+
+    url = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={api_key}"
+
     prompt = f"""
 A user gave a {rating}-star rating and wrote this review:
 
@@ -52,9 +41,26 @@ SUMMARY: <one short internal summary>
 ACTION: <one admin recommended action>
 """
 
-    response = model.generate_content(prompt)
-    return response.text
+    payload = {
+        "contents": [
+            {
+                "parts": [
+                    {"text": prompt}
+                ]
+            }
+        ]
+    }
 
+    headers = {"Content-Type": "application/json"}
+
+    response = requests.post(url, headers=headers, json=payload)
+
+    if response.status_code != 200:
+        print(response.text)
+        return "__API_ERROR__"
+
+    data = response.json()
+    return data["candidates"][0]["content"]["parts"][0]["text"]
 
 # ---------------- UI ----------------
 st.title("📝 User Feedback Portal")
@@ -70,25 +76,21 @@ if submit:
         st.warning("⚠️ Please enter a review before submitting.")
     else:
         with st.spinner("Generating AI response..."):
-            try:
-                ai_raw = generate_ai_response(review, rating)
-            except Exception as e:
-                st.error(str(e))
-                ai_raw = ""
+            ai_raw = generate_ai_response(review, rating)
 
-        # Default fallbacks
+        # ✅ Safe fallback values
         ai_response = "Thank you for your feedback!"
         ai_summary = "Summary unavailable."
         ai_action = "Manual review required."
 
-        # Parse AI output
-        for line in ai_raw.splitlines():
-            if line.startswith("AI_RESPONSE:"):
-                ai_response = line.replace("AI_RESPONSE:", "").strip()
-            elif line.startswith("SUMMARY:"):
-                ai_summary = line.replace("SUMMARY:", "").strip()
-            elif line.startswith("ACTION:"):
-                ai_action = line.replace("ACTION:", "").strip()
+        if ai_raw not in ["__API_ERROR__", "__API_KEY_MISSING__"]:
+            for line in ai_raw.splitlines():
+                if line.startswith("AI_RESPONSE:"):
+                    ai_response = line.replace("AI_RESPONSE:", "").strip()
+                elif line.startswith("SUMMARY:"):
+                    ai_summary = line.replace("SUMMARY:", "").strip()
+                elif line.startswith("ACTION:"):
+                    ai_action = line.replace("ACTION:", "").strip()
 
         new_row = {
             "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
