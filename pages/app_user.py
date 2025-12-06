@@ -17,8 +17,8 @@ if not api_key:
 
 genai.configure(api_key=api_key)
 
-# ✅ FIXED STABLE MODEL (NO list_models)
-model = genai.GenerativeModel("models/gemini-1.5-flash")
+# ✅ ✅ USE SDK-COMPATIBLE MODEL NAME (NO "models/")
+model = genai.GenerativeModel("gemini-pro")
 
 # ------------- CREATE DATA FILE IF NOT EXISTS -------------
 if not os.path.exists(DATA_FILE):
@@ -70,12 +70,10 @@ if submit:
                 st.error(str(e))
                 ai_raw = ""
 
-        # Default fallbacks
         ai_response = "Thank you for your feedback!"
         ai_summary = "Summary unavailable."
         ai_action = "Manual review required."
 
-        # Parse AI output
         for line in ai_raw.splitlines():
             if line.startswith("AI_RESPONSE:"):
                 ai_response = line.replace("AI_RESPONSE:", "").strip()
