@@ -43,19 +43,6 @@ https://github.com/Abhishek-6405/task2-ai-feedback-system
 
 Both dashboards use the **same data.csv file**.
 
----
-
-## Project Structure
-
-task2-ai-feedback-system/
-│
-├── app_user.py
-├── app_admin.py
-├── data.csv
-├── requirements.txt
-├── README.md
-├── REPORT.md
-└── task2env/   (ignored)
 
 ---
 
@@ -174,3 +161,4 @@ AI Intern – Take Home Assignment
 - Both dashboards use the same database
 - API key is stored using environment variables
 - System works end-to-end
+
