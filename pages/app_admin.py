@@ -6,7 +6,7 @@ st.set_page_config(page_title="Admin Dashboard", layout="wide")
 
 DATA_FILE = "data.csv"
 
-st.title("📊 Admin Feedback Dashboard")
+st.title("🔐 Admin Dashboard – Feedback Monitor")
 
 if not os.path.exists(DATA_FILE):
     st.warning("No feedback data available yet.")
@@ -15,10 +15,11 @@ if not os.path.exists(DATA_FILE):
 df = pd.read_csv(DATA_FILE)
 
 st.metric("Total Submissions", len(df))
-st.metric("Average Rating", round(df["user_rating"].mean(), 2))
 
-st.subheader("📋 All Feedback Data")
 st.dataframe(df, use_container_width=True)
 
-st.subheader("📈 Ratings Distribution")
-st.bar_chart(df["user_rating"].value_counts().sort_index())
+st.subheader("📊 Rating Distribution")
+st.bar_chart(df["user_rating"].value_counts())
+
+st.subheader("📋 Recent Feedback")
+st.table(df.tail(10))
