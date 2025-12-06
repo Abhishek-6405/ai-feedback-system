@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 import os
-import random
+import google.generativeai as genai
 
 # ---------------- CONFIG ----------------
 st.set_page_config(page_title="AI Feedback System", layout="centered")
@@ -10,6 +10,25 @@ DATA_FILE = "data.csv"
 
 # ---------------- SIDEBAR ----------------
 page = st.sidebar.radio("Navigation", ["User Feedback", "Admin Dashboard"])
+
+# ---------------- GEMINI SETUP ----------------
+api_key = os.getenv("GEMINI_API_KEY")
+genai.configure(api_key=api_key)
+
+# ✅ AUTO-DETECT A WORKING MODEL
+working_model = None
+try:
+    for m in genai.list_models():
+        if "generateContent" in m.supported_generation_methods:
+            working_model = m.name
+            break
+except:
+    pass
+
+if not working_model:
+    st.warning("⚠️ Gemini model not detected. AI may not work properly.")
+
+model = genai.GenerativeModel(working_model) if working_model else None
 
 # ---------------- CREATE CSV IF NOT EXISTS ----------------
 if not os.path.exists(DATA_FILE):
@@ -23,35 +42,26 @@ if not os.path.exists(DATA_FILE):
     ])
     df.to_csv(DATA_FILE, index=False)
 
-# ---------------- FAKE AI ENGINE (DEPLOYMENT SAFE) ----------------
+# ---------------- AI FUNCTION (REAL AI) ----------------
 def generate_ai_response(review, rating):
 
-    responses = [
-        "Thank you for sharing your feedback with us!",
-        "We appreciate your time and valuable review.",
-        "Thanks for helping us improve our services.",
-        "Your feedback means a lot to our team."
-    ]
+    if model is None:
+        return ""
 
-    summaries = [
-        "Customer shared general feedback.",
-        "User expressed satisfaction level.",
-        "Feedback regarding product/service experience.",
-        "General customer opinion recorded."
-    ]
+    prompt = f"""
+A user gave a {rating}-star rating and wrote this review:
 
-    actions = [
-        "No action required.",
-        "Share feedback with team.",
-        "Monitor similar feedback.",
-        "Follow up if required."
-    ]
+"{review}"
 
-    return (
-        f"AI_RESPONSE: {random.choice(responses)}\n"
-        f"SUMMARY: {random.choice(summaries)}\n"
-        f"ACTION: {random.choice(actions)}"
-    )
+Return output in EXACTLY this format:
+
+AI_RESPONSE: <one polite reply to user>
+SUMMARY: <one short internal summary>
+ACTION: <one admin recommended action>
+"""
+
+    response = model.generate_content(prompt)
+    return response.text
 
 # ============================
 # ✅ ✅ USER PAGE
@@ -70,13 +80,18 @@ if page == "User Feedback":
             st.warning("⚠️ Please enter a review before submitting.")
         else:
             with st.spinner("Generating AI response..."):
-                ai_raw = generate_ai_response(review, rating)
+                try:
+                    ai_raw = generate_ai_response(review, rating)
+                except Exception as e:
+                    st.error(str(e))
+                    ai_raw = ""
 
-            # Defaults
+            # Default fallbacks
             ai_response = "Thank you for your feedback!"
             ai_summary = "Summary unavailable."
             ai_action = "Manual review required."
 
+            # Parse AI output
             for line in ai_raw.splitlines():
                 if line.startswith("AI_RESPONSE:"):
                     ai_response = line.replace("AI_RESPONSE:", "").strip()
