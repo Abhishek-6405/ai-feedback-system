@@ -4,11 +4,14 @@ from datetime import datetime
 import os
 import requests
 
+# ---------------- CONFIG ----------------
 st.set_page_config(page_title="User Feedback Dashboard", layout="centered")
-
 DATA_FILE = "data.csv"
 
-# ---------------- CREATE CSV IF MISSING ----------------
+# ---------------- API KEY ----------------
+API_KEY = os.getenv("GEMINI_API_KEY")
+
+# ------------- CREATE DATA FILE IF NOT EXISTS -------------
 if not os.path.exists(DATA_FILE):
     df = pd.DataFrame(columns=[
         "timestamp",
@@ -20,31 +23,31 @@ if not os.path.exists(DATA_FILE):
     ])
     df.to_csv(DATA_FILE, index=False)
 
-# ---------------- AI FUNCTION ----------------
+# ---------------- AI FUNCTION (CLOUD SAFE) ----------------
 def generate_ai_response(review, rating):
-    api_key = os.getenv("GEMINI_API_KEY")
+    if not API_KEY:
+        return ""
 
-    if not api_key:
-        return "__error__"
-
-    url = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent?key={api_key}"
+    url = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent?key={API_KEY}"
 
     prompt = f"""
 A user gave a {rating}-star rating and wrote this review:
 
 "{review}"
 
-Respond EXACTLY in this format:
+Return output STRICTLY in this format:
 
-AI_RESPONSE: <polite reply>
-SUMMARY: <short summary>
-ACTION: <admin action>
+AI_RESPONSE: <one polite user reply>
+SUMMARY: <one short summary>
+ACTION: <one admin action>
 """
 
     payload = {
         "contents": [
             {
-                "parts": [{"text": prompt}]
+                "parts": [
+                    {"text": prompt}
+                ]
             }
         ]
     }
@@ -54,11 +57,10 @@ ACTION: <admin action>
     response = requests.post(url, headers=headers, json=payload)
 
     if response.status_code != 200:
-        return "__error__"
+        return ""
 
-    data = response.json()
-    return data["candidates"][0]["content"]["parts"][0]["text"]
-
+    result = response.json()
+    return result["candidates"][0]["content"]["parts"][0]["text"]
 
 # ---------------- UI ----------------
 st.title("📝 User Feedback Portal")
@@ -68,25 +70,30 @@ review = st.text_area("Write your review")
 
 submit = st.button("Submit")
 
+# ---------------- SUBMISSION ----------------
 if submit:
     if review.strip() == "":
-        st.warning("Please enter a review.")
+        st.warning("⚠️ Please enter a review before submitting.")
     else:
         with st.spinner("Generating AI response..."):
-            ai_raw = generate_ai_response(review, rating)
+            try:
+                ai_raw = generate_ai_response(review, rating)
+            except Exception as e:
+                ai_raw = ""
 
+        # Default fallbacks
         ai_response = "Thank you for your feedback!"
         ai_summary = "Summary unavailable."
         ai_action = "Manual review required."
 
-        if ai_raw != "__error__":
-            for line in ai_raw.splitlines():
-                if line.startswith("AI_RESPONSE:"):
-                    ai_response = line.replace("AI_RESPONSE:", "").strip()
-                elif line.startswith("SUMMARY:"):
-                    ai_summary = line.replace("SUMMARY:", "").strip()
-                elif line.startswith("ACTION:"):
-                    ai_action = line.replace("ACTION:", "").strip()
+        # Parse AI output
+        for line in ai_raw.splitlines():
+            if line.startswith("AI_RESPONSE:"):
+                ai_response = line.replace("AI_RESPONSE:", "").strip()
+            elif line.startswith("SUMMARY:"):
+                ai_summary = line.replace("SUMMARY:", "").strip()
+            elif line.startswith("ACTION:"):
+                ai_action = line.replace("ACTION:", "").strip()
 
         new_row = {
             "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
