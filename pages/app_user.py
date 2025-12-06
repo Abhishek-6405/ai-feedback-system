@@ -4,25 +4,23 @@ from datetime import datetime
 import os
 import google.generativeai as genai
 
+# ---------------- CONFIG ----------------
+st.set_page_config(page_title="User Feedback Dashboard", layout="centered")
 DATA_FILE = "data.csv"
 
 # ---------------- GEMINI SETUP ----------------
 api_key = os.getenv("GEMINI_API_KEY")
-genai.configure(api_key=api_key)
 
-working_model = None
-for m in genai.list_models():
-    if "generateContent" in m.supported_generation_methods:
-        working_model = m.name
-        break
-
-if not working_model:
-    st.error("No Gemini model available for your API key.")
+if not api_key:
+    st.error("❌ GEMINI_API_KEY not set in Streamlit Cloud")
     st.stop()
 
-model = genai.GenerativeModel(working_model)
+genai.configure(api_key=api_key)
 
-# ---------------- CREATE CSV IF NOT EXISTS ----------------
+# ✅ FIXED STABLE MODEL (NO list_models)
+model = genai.GenerativeModel("models/gemini-1.5-flash")
+
+# ------------- CREATE DATA FILE IF NOT EXISTS -------------
 if not os.path.exists(DATA_FILE):
     df = pd.DataFrame(columns=[
         "timestamp",
@@ -34,13 +32,6 @@ if not os.path.exists(DATA_FILE):
     ])
     df.to_csv(DATA_FILE, index=False)
 
-# ---------------- UI ----------------
-st.title("📝 User Feedback Portal")
-
-rating = st.selectbox("Select Rating (1–5)", [1, 2, 3, 4, 5])
-review = st.text_area("Write your review")
-submit = st.button("Submit")
-
 # ---------------- AI FUNCTION ----------------
 def generate_ai_response(review, rating):
     prompt = f"""
@@ -48,19 +39,29 @@ A user gave a {rating}-star rating and wrote this review:
 
 "{review}"
 
-Return output in EXACT format:
+Return output in EXACTLY this format:
 
-AI_RESPONSE: <polite reply>
-SUMMARY: <short summary>
-ACTION: <recommended action>
+AI_RESPONSE: <one polite reply to user>
+SUMMARY: <one short internal summary>
+ACTION: <one admin recommended action>
 """
+
     response = model.generate_content(prompt)
     return response.text
 
-# ---------------- SUBMIT ----------------
+
+# ---------------- UI ----------------
+st.title("📝 User Feedback Portal")
+
+rating = st.selectbox("Select Rating (1–5)", [1, 2, 3, 4, 5])
+review = st.text_area("Write your review")
+
+submit = st.button("Submit")
+
+# ---------------- SUBMISSION ----------------
 if submit:
     if review.strip() == "":
-        st.warning("Please enter a review.")
+        st.warning("⚠️ Please enter a review before submitting.")
     else:
         with st.spinner("Generating AI response..."):
             try:
@@ -69,10 +70,12 @@ if submit:
                 st.error(str(e))
                 ai_raw = ""
 
+        # Default fallbacks
         ai_response = "Thank you for your feedback!"
         ai_summary = "Summary unavailable."
         ai_action = "Manual review required."
 
+        # Parse AI output
         for line in ai_raw.splitlines():
             if line.startswith("AI_RESPONSE:"):
                 ai_response = line.replace("AI_RESPONSE:", "").strip()
@@ -94,6 +97,6 @@ if submit:
         df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
         df.to_csv(DATA_FILE, index=False)
 
-        st.success("✅ Feedback submitted!")
+        st.success("✅ Feedback submitted successfully!")
         st.subheader("🤖 AI Response")
         st.write(ai_response)
