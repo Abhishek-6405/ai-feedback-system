@@ -2,13 +2,13 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 import os
-import requests
+import random
 
 # ---------------- CONFIG ----------------
 st.set_page_config(page_title="AI Feedback System", layout="centered")
 DATA_FILE = "data.csv"
 
-# ---------------- SIDEBAR NAVIGATION ----------------
+# ---------------- SIDEBAR ----------------
 page = st.sidebar.radio("Navigation", ["User Feedback", "Admin Dashboard"])
 
 # ---------------- CREATE CSV IF NOT EXISTS ----------------
@@ -23,53 +23,35 @@ if not os.path.exists(DATA_FILE):
     ])
     df.to_csv(DATA_FILE, index=False)
 
-# ---------------- AI FUNCTION (DEPLOYMENT SAFE) ----------------
+# ---------------- FAKE AI ENGINE (DEPLOYMENT SAFE) ----------------
 def generate_ai_response(review, rating):
 
-    API_KEY = os.getenv("GEMINI_API_KEY")
+    responses = [
+        "Thank you for sharing your feedback with us!",
+        "We appreciate your time and valuable review.",
+        "Thanks for helping us improve our services.",
+        "Your feedback means a lot to our team."
+    ]
 
-    if not API_KEY:
-        st.error("❌ GEMINI_API_KEY missing in environment")
-        return ""
+    summaries = [
+        "Customer shared general feedback.",
+        "User expressed satisfaction level.",
+        "Feedback regarding product/service experience.",
+        "General customer opinion recorded."
+    ]
 
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={API_KEY}"
+    actions = [
+        "No action required.",
+        "Share feedback with team.",
+        "Monitor similar feedback.",
+        "Follow up if required."
+    ]
 
-    prompt = f"""
-A user gave a {rating}-star rating and wrote this review:
-
-{review}
-
-Return output strictly in this format:
-
-AI_RESPONSE: <reply>
-SUMMARY: <summary>
-ACTION: <action>
-"""
-
-    payload = {
-        "contents": [{
-            "parts": [{"text": prompt}]
-        }]
-    }
-
-    headers = {"Content-Type": "application/json"}
-
-    response = requests.post(url, headers=headers, json=payload)
-
-    # ✅ SHOW REAL STATUS
-    st.write("🔎 Status Code:", response.status_code)
-
-    if response.status_code != 200:
-        st.error("❌ Gemini API Error")
-        st.code(response.text)
-        return ""
-
-    data = response.json()
-
-    try:
-        return data["candidates"][0]["content"]["parts"][0]["text"]
-    except:
-        return ""
+    return (
+        f"AI_RESPONSE: {random.choice(responses)}\n"
+        f"SUMMARY: {random.choice(summaries)}\n"
+        f"ACTION: {random.choice(actions)}"
+    )
 
 # ============================
 # ✅ ✅ USER PAGE
@@ -90,7 +72,7 @@ if page == "User Feedback":
             with st.spinner("Generating AI response..."):
                 ai_raw = generate_ai_response(review, rating)
 
-            # Default fallback
+            # Defaults
             ai_response = "Thank you for your feedback!"
             ai_summary = "Summary unavailable."
             ai_action = "Manual review required."
@@ -120,9 +102,9 @@ if page == "User Feedback":
             st.subheader("🤖 AI Response")
             st.write(ai_response)
 
-
-# ✅ ADMIN DASHBOARD
-
+# ============================
+# ✅ ✅ ADMIN PAGE
+# ============================
 elif page == "Admin Dashboard":
 
     st.title("📊 Admin Feedback Dashboard")
@@ -134,13 +116,13 @@ elif page == "Admin Dashboard":
     else:
         st.dataframe(df, use_container_width=True)
 
-        st.subheader("📌 Rating Distribution")
+        st.subheader("📊 Rating Distribution")
         st.bar_chart(df["user_rating"].value_counts().sort_index())
 
         st.subheader("⬇️ Download Data")
         st.download_button(
-            label="Download CSV",
-            data=df.to_csv(index=False).encode("utf-8"),
-            file_name="feedback_data.csv",
-            mime="text/csv"
+            "Download CSV",
+            df.to_csv(index=False).encode("utf-8"),
+            "feedback_data.csv",
+            "text/csv"
         )
